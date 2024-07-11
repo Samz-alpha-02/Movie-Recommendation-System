@@ -15,8 +15,28 @@ def fetch_poster(movie_id):
     full_path = f"https://image.tmdb.org/t/p/w500/{poster_path}"
     return full_path
 
+
+
+# Load movie_dict.pkl
+with open('model/movie_dict.pkl', 'rb') as f:
+    movies_dict = pickle.load(f)
+
+movies = pd.DataFrame(movies_dict)
+
+
+
+# Flask routes
+@app.route('/')
+def home():
+    movie_list = movies['title'].values
+    return render_template('index.html', movie_list=movie_list)
+
+@app.route('/recommend', methods=['POST'])
 # Function to recommend movies
 def recommend(movie):
+    cv = CountVectorizer(stop_words='english')
+    vectors = cv.fit_transform(movies['tags']).toarray()
+    similarity = cosine_similarity(vectors)
     index = movies[movies['title'] == movie].index[0]
     distances = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda x: x[1])
     recommended_movie_names = []
@@ -27,23 +47,6 @@ def recommend(movie):
         recommended_movie_names.append(movies.iloc[i[0]].title)
     return recommended_movie_names, recommended_movie_posters
 
-# Load movie_dict.pkl
-with open('model/movie_dict.pkl', 'rb') as f:
-    movies_dict = pickle.load(f)
-
-movies = pd.DataFrame(movies_dict)
-
-cv = CountVectorizer(max_features=10000, stop_words='english')
-vectors = cv.fit_transform(movies['tags']).toarray()
-similarity = cosine_similarity(vectors)
-
-# Flask routes
-@app.route('/')
-def home():
-    movie_list = movies['title'].values
-    return render_template('index.html', movie_list=movie_list)
-
-@app.route('/recommend', methods=['POST'])
 def recommend_movies():
     movie = request.form['movie']
     recommended_movie_names, recommended_movie_posters = recommend(movie)
