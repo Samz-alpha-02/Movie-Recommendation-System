@@ -1,5 +1,4 @@
 pandas
 flask
 requests
-spacy
 scikit-learn
