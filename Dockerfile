@@ -1,24 +1,23 @@
-# Use the official Python image from the Docker Hub
-FROM python:3.9
+# Use an official Python runtime as a parent image
+FROM python:3.8
 
-# Set the working directory
-WORKDIR /app
+# Set the working directory to /app
+WORKDIR /application
 
-# Copy the requirements file to the working directory
+# Copy only the requirements file first for better caching
 COPY requirements.txt .
 
-# Install the required packages
-RUN pip install -r requirements.txt
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the code to the working directory
+# Copy the application files
 COPY . .
 
-# Expose the port that Streamlit runs on
-EXPOSE 8501
+# Expose the necessary port
+EXPOSE 8000
 
-# Set the Streamlit server configuration
-ENV STREAMLIT_SERVER_PORT=8501
-ENV STREAMLIT_SERVER_HEADLESS=true
+# Set environment variables
+ENV PYTHONUNBUFFERED 1
 
-# Run the Streamlit app
-CMD ["streamlit", "run", "app.py"]
+# Run the application with Flask's development server
+CMD ["python", "application.py"]
