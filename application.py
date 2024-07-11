@@ -22,11 +22,13 @@ with open('model/movie_dict.pkl', 'rb') as f:
 
 movies = pd.DataFrame(movies_dict)
 
+cv = CountVectorizer(max_features=10000, stop_words='english')
+vectors = cv.fit_transform(movies['tags']).toarray()
+similarity = cosine_similarity(vectors)
+
+
 # Function to recommend movies
 def recommend(movie):
-    cv = CountVectorizer(stop_words='english')
-    vectors = cv.fit_transform(movies['tags']).toarray()
-    similarity = cosine_similarity(vectors)
     index = movies[movies['title'] == movie].index[0]
     distances = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda x: x[1])
     recommended_movie_names = []
