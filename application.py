@@ -16,22 +16,12 @@ def fetch_poster(movie_id):
     return full_path
 
 
-
 # Load movie_dict.pkl
 with open('model/movie_dict.pkl', 'rb') as f:
     movies_dict = pickle.load(f)
 
 movies = pd.DataFrame(movies_dict)
 
-
-
-# Flask routes
-@app.route('/')
-def home():
-    movie_list = movies['title'].values
-    return render_template('index.html', movie_list=movie_list)
-
-@app.route('/recommend', methods=['POST'])
 # Function to recommend movies
 def recommend(movie):
     cv = CountVectorizer(stop_words='english')
@@ -47,6 +37,15 @@ def recommend(movie):
         recommended_movie_names.append(movies.iloc[i[0]].title)
     return recommended_movie_names, recommended_movie_posters
 
+
+
+# Flask routes
+@app.route('/')
+def home():
+    movie_list = movies['title'].values
+    return render_template('index.html', movie_list=movie_list)
+
+@app.route('/recommend', methods=['POST'])
 def recommend_movies():
     movie = request.form['movie']
     recommended_movie_names, recommended_movie_posters = recommend(movie)
