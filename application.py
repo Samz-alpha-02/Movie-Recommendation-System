@@ -1,9 +1,8 @@
 import pickle
 import pandas as pd
 import requests
+import os
 from flask import Flask, request, jsonify, render_template
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 app = Flask(__name__)
 
@@ -15,6 +14,17 @@ def fetch_poster(movie_id):
     full_path = f"https://image.tmdb.org/t/p/w500/{poster_path}"
     return full_path
 
+# Function to download file from GitHub release
+def download_file_from_github_release(url, file_name):
+    response = requests.get(url)
+    with open(file_name, 'wb') as file:
+        file.write(response.content)
+
+# Download precomputed similarity matrix from GitHub release if not present
+similarity_file = 'model/similarity.pkl'
+if not os.path.exists(similarity_file):
+    github_release_url = 'https://github.com/Samz-alpha-02/Movie-Recommendation-System/releases/download/v0.0.1/similarity.pkl'
+    download_file_from_github_release(github_release_url, similarity_file)
 
 # Load movie_dict.pkl
 with open('model/movie_dict.pkl', 'rb') as f:
@@ -22,10 +32,9 @@ with open('model/movie_dict.pkl', 'rb') as f:
 
 movies = pd.DataFrame(movies_dict)
 
-cv = CountVectorizer(max_features=10000, stop_words='english')
-vectors = cv.fit_transform(movies['tags']).toarray()
-similarity = cosine_similarity(vectors)
-
+# Load precomputed similarity matrix
+with open(similarity_file, 'rb') as f:
+    similarity = pickle.load(f)
 
 # Function to recommend movies
 def recommend(movie):
@@ -38,8 +47,6 @@ def recommend(movie):
         recommended_movie_posters.append(fetch_poster(movie_id))
         recommended_movie_names.append(movies.iloc[i[0]].title)
     return recommended_movie_names, recommended_movie_posters
-
-
 
 # Flask routes
 @app.route('/')
