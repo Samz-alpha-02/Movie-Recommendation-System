@@ -65,7 +65,7 @@
             <form id="recommendation-form" class="mt-4">
                 <div class="form-group">
                     <label for="movie">Type or select a movie from the dropdown:</label>
-                    <select id="movie" name="movie" class="form-control">
+                    <select id="movie" name="movie" class="form-control movie-select">
                         {% for movie in movie_list %}
                             <option value="{{ movie }}">{{ movie }}</option>
                         {% endfor %}
@@ -80,6 +80,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
+            $('.movie-select').select2({
+                placeholder: 'Select a movie',
+                allowClear: true
+            });
             $('#recommendation-form').on('submit', function(event) {
                 event.preventDefault();
                 $('#recommendations').empty();
