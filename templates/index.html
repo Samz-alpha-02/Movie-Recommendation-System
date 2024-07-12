@@ -36,16 +36,22 @@
             height: 38px; /* Ensure uniform height with select2 */
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-            color: white;
+            color: white !important;
+            font-weight: bold !important;
+            text-shadow: none !important; /* Remove text shadow */
         }
         .select2-container--default .select2-selection--single .select2-selection__placeholder {
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.7) !important;
+            font-weight: normal !important;
+            text-shadow: none !important; /* Remove text shadow */
         }
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 38px; /* Match the height of the input box */
         }
         .select2-results__option {
-            color: black; /* Ensure dropdown options are readable */
+            color: black !important; /* Ensure dropdown options are readable */
+            font-weight: normal !important;
+            text-shadow: none !important; /* Remove text shadow */
         }
         .btn {
             background: rgba(255, 255, 255, 0.1);
