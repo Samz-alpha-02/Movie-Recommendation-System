@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendation System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-image: url('static/background.jpg'); /* Replace with your background image URL */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: white; /* Ensure the text is visible on the background */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* Add text shadow for better readability */
+        }
+        .container {
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .form-box {
+            background-color: rgba(255, 255, 255, 0.1); /* Transparent background for form box */
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px); /* Glass effect */
+        }
+        .movie-poster {
+            width: 200px;
+            margin: 20px;
+        }
+        .form-control, .select2-container--default .select2-selection--single {
+            background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent background for form elements */
+            color: white; /* Ensure the text is visible on form elements */
+            border: none;
+            height: 38px; /* Ensure uniform height with select2 */
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: white !important;
+            font-weight: bold !important;
+            text-shadow: none !important; /* Remove text shadow */
+        }
+        .select2-container--default .select2-selection--single .select2-selection__placeholder {
+            color: rgba(255, 255, 255, 0.7) !important;
+            font-weight: normal !important;
+            text-shadow: none !important; /* Remove text shadow */
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 38px; /* Match the height of the input box */
+        }
+        .select2-results__option {
+            color: black !important; /* Ensure dropdown options are readable */
+            font-weight: normal !important;
+            text-shadow: none !important; /* Remove text shadow */
+        }
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px); /* Glass effect */
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .form-group label {
+            text-shadow: none; /* Remove text shadow from labels for better readability */
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 1); /* Stronger text shadow for heading */
+        }
+        .movie-title {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px); /* Glass effect */
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-top: 10px;
+        }
+        .genre-tag {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .genre-tag:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        .genre-tag.selected {
+            background: rgba(74, 144, 226, 0.7);
+            border: 1px solid rgba(74, 144, 226, 1);
+        }
+        .genre-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Movie Recommendation System</h1>
+        <div class="form-box">
+            <form id="recommendation-form" class="mt-4">
+                <div class="form-group">
+                    <label for="movie">Type or select a movie from the dropdown:</label>
+                    <select id="movie" name="movie" class="form-control">
+                        <option></option> <!-- Placeholder for Select2 -->
+                        {% for movie in movie_list %}
+                            <option value="{{ movie }}">{{ movie }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Show Recommendation</button>
+            </form>
+        </div>
+        
+        <!-- Genre Selection Section -->
+        <div class="form-box mt-4">
+            <form id="genre-form">
+                <div class="form-group">
+                    <label>Or browse movies by genre:</label>
+                    <div class="genre-container">
+                        {% for genre in genre_list %}
+                            <div class="genre-tag" data-genre="{{ genre }}">{{ genre }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Show Movies</button>
+            </form>
+        </div>
+        
+        <div id="recommendations" class="mt-4 row"></div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#movie').select2({
+                placeholder: "Select or type a movie",
+                allowClear: true,
+                width: '100%'
+            });
+            
+            $('#recommendation-form').on('submit', function(event) {
+                event.preventDefault();
+                $('#recommendations').empty();
+                $.ajax({
+                    url: '/recommend',
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        response.forEach(function(movie) {
+                            $('#recommendations').append(
+                                `<div class="col-md-4 text-center">
+                                    <div class="movie-title">
+                                        <h5>${movie.title}</h5>
+                                        <img src="${movie.poster}" class="movie-poster" />
+                                    </div>
+                                </div>`
+                            );
+                        });
+                    }
+                });
+            });
+            
+            // Handle genre tag selection
+            $('.genre-tag').on('click', function() {
+                $(this).toggleClass('selected');
+            });
+            
+            // Handle genre form submission
+            $('#genre-form').on('submit', function(event) {
+                event.preventDefault();
+                $('#recommendations').empty();
+                
+                // Get all selected genres
+                var selectedGenres = [];
+                $('.genre-tag.selected').each(function() {
+                    selectedGenres.push($(this).data('genre'));
+                });
+                
+                if (selectedGenres.length === 0) {
+                    alert('Please select at least one genre');
+                    return;
+                }
+                
+                $.ajax({
+                    url: '/filter_by_genre',
+                    method: 'POST',
+                    data: { genres: selectedGenres },
+                    success: function(response) {
+                        if (response.length === 0) {
+                            $('#recommendations').append(
+                                `<div class="col-12 text-center">
+                                    <p>No movies found for the selected genres.</p>
+                                </div>`
+                            );
+                        } else {
+                            response.forEach(function(movie) {
+                                $('#recommendations').append(
+                                    `<div class="col-md-4 text-center">
+                                        <div class="movie-title">
+                                            <h5>${movie.title}</h5>
+                                            <img src="${movie.poster}" class="movie-poster" />
+                                        </div>
+                                    </div>`
+                                );
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
