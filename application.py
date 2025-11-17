@@ -37,7 +37,7 @@ with open(similarity_file, 'rb') as f:
     similarity = pickle.load(f)
 
 # Load genre_movies.pkl
-with open('genre_movies.pkl', 'rb') as f:
+with open('model/genre_movies.pkl', 'rb') as f:
     genre_movies = pickle.load(f)
 
 # Function to recommend movies
